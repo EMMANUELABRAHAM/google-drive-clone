@@ -3,12 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.FileListFragment">
+    tools:context=".ui.fragments.FileListFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/item_file"/>
+        tools:listitem="@layout/item_file" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.agape.googledriveclone.ui.LoginFragment"
+        android:name="com.agape.googledriveclone.ui.fragments.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action
@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/featureFragment"
-        android:name="com.agape.googledriveclone.ui.FeatureFragment"
+        android:name="com.agape.googledriveclone.ui.fragments.FeatureFragment"
         android:label="Feature"
         tools:layout="@layout/fragment_feature">
         <action
@@ -31,7 +31,7 @@
 
     <fragment
         android:id="@+id/fileListFragment"
-        android:name="com.agape.googledriveclone.ui.FileListFragment"
+        android:name="com.agape.googledriveclone.ui.fragments.FileListFragment"
         android:label="File List"
-        tools:layout="@layout/fragment_file_list"/>
+        tools:layout="@layout/fragment_file_list" />
 </navigation>

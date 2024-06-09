@@ -1,4 +1,4 @@
-package com.agape.googledriveclone.ui
+package com.agape.googledriveclone.ui.fragments
 
 import android.content.Context
 import android.content.Intent
@@ -18,10 +18,10 @@ import com.agape.googledriveclone.ui.adapter.FileListAdapter
 import com.agape.googledriveclone.utils.AppUtils.showToast
 import com.agape.googledriveclone.viewmodel.DriveViewModel
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.services.drive.DriveScopes
-import kotlinx.coroutines.launch
 import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FileListFragment : Fragment() {
@@ -29,7 +29,6 @@ class FileListFragment : Fragment() {
     private lateinit var binding: FragmentFileListBinding
     private lateinit var viewModel: DriveViewModel
     private lateinit var adapter: FileListAdapter
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,11 +51,15 @@ class FileListFragment : Fragment() {
             var files = viewModel.getGoogleDrive(getGoogleCredential())?.let { it1 ->
                 viewModel.listFiles(it1)
             }
-            if (files == null){
+            if (files == null) {
                 files = emptyList()
             }
 
-            adapter = FileListAdapter(files, this@FileListFragment::openFile, this@FileListFragment::downloadFile)
+            adapter = FileListAdapter(
+                files,
+                this@FileListFragment::openFile,
+                this@FileListFragment::downloadFile
+            )
 
             binding.recyclerView.adapter = adapter
             Log.d("GD Clone", files.toString())
@@ -72,25 +75,30 @@ class FileListFragment : Fragment() {
 
     private fun downloadFile(file: GoogleDriveFile) {
         file.id.let { fileId ->
+            //TODO: We can move downloading activity to workManager if needed.
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    val outputStream = requireContext().openFileOutput(file.name, Context.MODE_PRIVATE)
+                    val outputStream =
+                        requireContext().openFileOutput(file.name, Context.MODE_PRIVATE)
                     getGoogleDrive()?.files()?.get(fileId)?.executeMediaAndDownloadTo(outputStream)
-                    withContext(Dispatchers.Main){
+                    //File is downloading to app specific folder. In future we can move the path to common Download folder.
+                    withContext(Dispatchers.Main) {
                         "File downloaded successfully".showToast(requireContext())
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    withContext(Dispatchers.Main){
-                        "Error downloading file".showToast(requireContext())                }
+                    withContext(Dispatchers.Main) {
+                        "Error downloading file".showToast(requireContext())
+                    }
                 }
             }
         }
     }
 
-    private fun getGoogleDrive(): Drive?{
+    private fun getGoogleDrive(): Drive? {
         return viewModel.getGoogleDrive(getGoogleCredential())
     }
+
     private fun getGoogleCredential(): GoogleAccountCredential {
         return GoogleAccountCredential.usingOAuth2(requireContext(), listOf(DriveScopes.DRIVE_FILE))
     }

@@ -1,4 +1,4 @@
-package com.agape.googledriveclone
+package com.agape.googledriveclone.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

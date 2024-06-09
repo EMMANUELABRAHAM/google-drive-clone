@@ -33,6 +33,7 @@ class SingleLiveEvent<T> : MutableLiveData<T>() {
             if (pending) {
                 pending = false
                 observer.onChanged(value)
-            }        }
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.agape.googledriveclone.ui
+package com.agape.googledriveclone.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
@@ -40,7 +40,7 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[DriveViewModel::class.java]
-        lifecycleScope.launch{
+        lifecycleScope.launch {
             if (viewModel.isSignedIn()) {
                 val action = LoginFragmentDirections.actionLoginFragmentToFeatureFragment()
                 findNavController().navigate(action)
@@ -89,7 +89,7 @@ class LoginFragment : Fragment() {
                                 .build()
                         )
                     }
-                    withContext(Dispatchers.Main){
+                    withContext(Dispatchers.Main) {
                         moveToFeatureScreen()
                     }
                 }
@@ -101,9 +101,9 @@ class LoginFragment : Fragment() {
         return Identity.getSignInClient(requireActivity())
     }
 
-    private fun moveToFeatureScreen(){
-            val action = LoginFragmentDirections.actionLoginFragmentToFeatureFragment()
-            findNavController().navigate(action)
+    private fun moveToFeatureScreen() {
+        val action = LoginFragmentDirections.actionLoginFragmentToFeatureFragment()
+        findNavController().navigate(action)
     }
 
     private fun signIn() {

@@ -10,9 +10,9 @@ import com.agape.googledriveclone.R
 import com.agape.googledriveclone.model.GoogleDriveFile
 
 class FileListAdapter(
-private val files: List<GoogleDriveFile>,
-private val onItemClick: (GoogleDriveFile) -> Unit,
-private val onDownloadClick: (GoogleDriveFile) -> Unit
+    private val files: List<GoogleDriveFile>,
+    private val onItemClick: (GoogleDriveFile) -> Unit,
+    private val onDownloadClick: (GoogleDriveFile) -> Unit
 ) : RecyclerView.Adapter<FileListAdapter.FileViewHolder>() {
 
     inner class FileViewHolder(view: View) : RecyclerView.ViewHolder(view) {

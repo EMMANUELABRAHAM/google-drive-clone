@@ -46,9 +46,6 @@ class DriveViewModel : ViewModel() {
     private val _files = MutableLiveData<List<File>>()
     val files: LiveData<List<File>> = _files
 
-    private val _uploadResult = MutableLiveData<String>()
-    val uploadResult: LiveData<String> = _uploadResult
-
     private val _showToast = SingleLiveEvent<String>()
     val showToast: LiveData<String> = _showToast
 

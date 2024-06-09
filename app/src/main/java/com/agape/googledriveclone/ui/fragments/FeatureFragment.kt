@@ -1,4 +1,4 @@
-package com.agape.googledriveclone.ui
+package com.agape.googledriveclone.ui.fragments
 
 import android.app.Activity
 import android.content.Intent
