@@ -40,6 +40,9 @@ Google Drive Clone is an Android application that allows users to authenticate u
 5. Build and run the project.
 
 ---
+
+Releases: https://github.com/EMMANUELABRAHAM/google-drive-clone/releases
+
 Happy coding! 🚀
 
 
