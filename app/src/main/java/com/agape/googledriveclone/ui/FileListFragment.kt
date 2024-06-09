@@ -21,6 +21,8 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.services.drive.DriveScopes
 import kotlinx.coroutines.launch
 import com.google.api.services.drive.Drive
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class FileListFragment : Fragment() {
 
@@ -54,9 +56,8 @@ class FileListFragment : Fragment() {
                 files = emptyList()
             }
 
-            adapter = FileListAdapter(files) { file ->
-                openFile(file)
-            }
+            adapter = FileListAdapter(files, this@FileListFragment::openFile, this@FileListFragment::downloadFile)
+
             binding.recyclerView.adapter = adapter
             Log.d("GD Clone", files.toString())
         }
@@ -71,14 +72,18 @@ class FileListFragment : Fragment() {
 
     private fun downloadFile(file: GoogleDriveFile) {
         file.id.let { fileId ->
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val outputStream = requireContext().openFileOutput(file.name, Context.MODE_PRIVATE)
                     getGoogleDrive()?.files()?.get(fileId)?.executeMediaAndDownloadTo(outputStream)
-                    "File downloaded successfully".showToast(requireContext())
+                    withContext(Dispatchers.Main){
+                        "File downloaded successfully".showToast(requireContext())
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    "Error downloading file".showToast(requireContext())                }
+                    withContext(Dispatchers.Main){
+                        "Error downloading file".showToast(requireContext())                }
+                }
             }
         }
     }
