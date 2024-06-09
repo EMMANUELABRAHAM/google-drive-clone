@@ -11,6 +11,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.agape.googledriveclone.model.FileDetails
+import com.agape.googledriveclone.model.GoogleDriveFile
+import com.agape.googledriveclone.utils.SingleLiveEvent
 import com.google.android.gms.auth.api.identity.AuthorizationClient
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
@@ -24,6 +26,7 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
+import com.google.api.services.drive.model.FileList
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -46,7 +49,7 @@ class DriveViewModel : ViewModel() {
     private val _uploadResult = MutableLiveData<String>()
     val uploadResult: LiveData<String> = _uploadResult
 
-    private val _showToast = MutableLiveData<String>()
+    private val _showToast = SingleLiveEvent<String>()
     val showToast: LiveData<String> = _showToast
 
     private val _initiateAuthorization = MutableLiveData<Int>()
@@ -117,6 +120,7 @@ class DriveViewModel : ViewModel() {
     private fun resetValues() {
         _initiateAuthorization.value = 0
     }
+
     suspend fun uploadFileToDrive(
         drive: Drive,
         fileDetails: FileDetails
@@ -147,6 +151,33 @@ class DriveViewModel : ViewModel() {
         } else {
             null
         }
+    }
+
+    suspend fun listFiles(drive: Drive): List<GoogleDriveFile> = withContext(Dispatchers.IO) {
+        val fileList: MutableList<GoogleDriveFile> = mutableListOf()
+        var pageToken: String? = null
+        try {
+            do {
+                val result: FileList = drive.files().list()
+                    .setQ("trashed = false")
+                    .setSpaces("drive")
+                    .setFields("nextPageToken, files(id, name, mimeType)")
+                    .setPageToken(pageToken)
+                    .execute()
+
+                fileList.addAll(result.files.map { file ->
+                    GoogleDriveFile(
+                        id = file.id,
+                        name = file.name,
+                        mimeType = file.mimeType
+                    )
+                })
+                pageToken = result.nextPageToken
+            } while (pageToken != null)
+        } catch (e: Exception) {
+            e.handleException()
+        }
+        fileList
     }
 
     fun getPermissionListForFileUpload(): Array<String> {
