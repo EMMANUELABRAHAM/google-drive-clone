@@ -78,12 +78,15 @@ class FileListFragment : Fragment() {
             //TODO: We can move downloading activity to workManager if needed.
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
+                    withContext(Dispatchers.Main) {
+                        "File downloading...".showToast(requireContext())
+                    }
                     val outputStream =
                         requireContext().openFileOutput(file.name, Context.MODE_PRIVATE)
                     getGoogleDrive()?.files()?.get(fileId)?.executeMediaAndDownloadTo(outputStream)
                     //File is downloading to app specific folder. In future we can move the path to common Download folder.
                     withContext(Dispatchers.Main) {
-                        "File downloaded successfully".showToast(requireContext())
+                        "File downloaded to successfully: ".showToast(requireContext())
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

@@ -104,7 +104,7 @@ class DriveViewModel : ViewModel() {
         return null
     }
 
-    suspend fun isSignedIn(): Boolean {
+    fun isSignedIn(): Boolean {
         return firebaseAuth.currentUser != null
     }
 
@@ -125,6 +125,7 @@ class DriveViewModel : ViewModel() {
         //TODO: We can implement workManager to upload files. So that the file upload will be guaranteed.
         withContext(Dispatchers.IO) {
             try {
+                _showToast.postValue("File Uploading...")
                 val fileG = File().apply {
                     name = fileDetails.fileName
                 }
