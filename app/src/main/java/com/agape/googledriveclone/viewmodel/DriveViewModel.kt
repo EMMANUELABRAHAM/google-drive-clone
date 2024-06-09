@@ -1,18 +1,27 @@
 package com.agape.googledriveclone.viewmodel
 
+import android.Manifest
+import android.accounts.Account
 import android.content.Intent
 import android.content.IntentSender
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agape.googledriveclone.model.FileDetails
 import com.google.android.gms.auth.api.identity.AuthorizationClient
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.common.api.Scope
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.FileContent
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
 import com.google.firebase.auth.GoogleAuthProvider
@@ -22,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class DriveViewModel : ViewModel() {
 
@@ -43,16 +53,21 @@ class DriveViewModel : ViewModel() {
     val initiateAuthorization: LiveData<Int> = _initiateAuthorization
 
 
-    suspend fun signInGoogle(oneTap: SignInClient): IntentSender {
-        val signInRequest = BeginSignInRequest.builder().setGoogleIdTokenRequestOptions(
-            BeginSignInRequest.GoogleIdTokenRequestOptions.builder().setSupported(true)
-                .setServerClientId(
-                    "442006442670-jj6pu42mrsue6eiibgtids0i49caquqh.apps.googleusercontent.com"
-                ).setFilterByAuthorizedAccounts(false).build()
-        ).setAutoSelectEnabled(true).build()
-        return viewModelScope.async(Dispatchers.IO) {
-            return@async oneTap.beginSignIn(signInRequest).await().pendingIntent.intentSender
-        }.await()
+    suspend fun signInGoogle(oneTap: SignInClient): IntentSender? {
+        try {
+            val signInRequest = BeginSignInRequest.builder().setGoogleIdTokenRequestOptions(
+                BeginSignInRequest.GoogleIdTokenRequestOptions.builder().setSupported(true)
+                    .setServerClientId(
+                        "442006442670-jj6pu42mrsue6eiibgtids0i49caquqh.apps.googleusercontent.com"
+                    ).setFilterByAuthorizedAccounts(false).build()
+            ).setAutoSelectEnabled(true).build()
+            return viewModelScope.async(Dispatchers.IO) {
+                return@async oneTap.beginSignIn(signInRequest).await().pendingIntent.intentSender
+            }.await()
+        } catch (e: Exception) {
+            e.handleException()
+        }
+        return null
     }
 
     fun getSignInResult(intent: Intent, oneTap: SignInClient) {
@@ -61,21 +76,28 @@ class DriveViewModel : ViewModel() {
             val googleIdToken = credential.googleIdToken
             val googleCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
             viewModelScope.launch(Dispatchers.IO) {
-                val authResult = firebaseAuth.signInWithCredential(googleCredential).await()
-                Log.e("GD Clone", authResult.user!!.email!!)
-                _initiateAuthorization.postValue(1)
+                try {
+                    val authResult = firebaseAuth.signInWithCredential(googleCredential).await()
+                    Log.e("GD Clone", authResult.user!!.email!!)
+                    _initiateAuthorization.postValue(1)
+                } catch (e: Exception) {
+                    e.handleException()
+                }
             }
-        } catch (e: Exception){
-            _showToast.postValue("Unexpected error occurred")
-            Log.e("GD Clone", "Exception", e)
+        } catch (e: Exception) {
+            e.handleException()
         }
+    }
 
+    private fun Exception.handleException() {
+        _showToast.postValue("Unexpected error occurred")
+        Log.e("GD Clone", "Exception", this)
     }
 
     suspend fun authorizeGoogleDrive(authorizationClient: AuthorizationClient): AuthorizationResult? {
         try {
             return authorizationClient.authorize(authorizationRequest).await()
-        }catch (e: Exception){
+        } catch (e: Exception) {
             _showToast.postValue("Unexpected error occurred")
             Log.e("GD Clone", "Exception", e)
         }
@@ -92,8 +114,53 @@ class DriveViewModel : ViewModel() {
         resetValues()
     }
 
-    private fun resetValues(){
+    private fun resetValues() {
         _initiateAuthorization.value = 0
+    }
+    suspend fun uploadFileToDrive(
+        drive: Drive,
+        fileDetails: FileDetails
+    ) {
+        //TODO: We can implement workManager to upload files. So that the file upload will be guaranteed.
+        withContext(Dispatchers.IO) {
+            try {
+                val fileG = File().apply {
+                    name = fileDetails.fileName
+                }
+                val mediaContent = FileContent(fileDetails.type, fileDetails.file)
+                drive.files().create(fileG, mediaContent).execute()
+                _showToast.postValue("File Uploaded")
+            } catch (e: Exception) {
+                e.handleException()
+            }
+        }
+    }
+
+    fun getGoogleDrive(credential: GoogleAccountCredential): Drive? {
+        val currentUser = firebaseAuth.currentUser
+        return if (currentUser != null) {
+            credential.selectedAccount = Account(currentUser.email, "google.com")
+            Drive.Builder(
+                NetHttpTransport(), GsonFactory.getDefaultInstance(),
+                credential
+            ).build()
+        } else {
+            null
+        }
+    }
+
+    fun getPermissionListForFileUpload(): Array<String> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.READ_MEDIA_AUDIO
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        }
     }
 }
 

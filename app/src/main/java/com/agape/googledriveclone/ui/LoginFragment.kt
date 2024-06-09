@@ -109,7 +109,9 @@ class LoginFragment : Fragment() {
     private fun signIn() {
         lifecycleScope.launch {
             val result = viewModel.signInGoogle(getSignInClient())
-            signInLauncher.launch(IntentSenderRequest.Builder(result).build())
+            result?.let {
+                signInLauncher.launch(IntentSenderRequest.Builder(it).build())
+            }
         }
     }
 }
