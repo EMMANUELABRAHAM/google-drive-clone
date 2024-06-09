@@ -12,6 +12,8 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupActionBarWithNavController
 import com.agape.googledriveclone.databinding.ActivityMainBinding
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
@@ -69,44 +71,58 @@ class MainActivity : AppCompatActivity() {
                 authorize.getAuthorizationResultFromIntent(data)
             }
 
-        binding.signInButton.setOnClickListener {
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    val result = signInGoogle()
-                    signInLauncher.launch(IntentSenderRequest.Builder(result).build())
-                }
-            }
-        }
+        setSupportActionBar(binding.toolbar)
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
 
-        binding.getFilesButton.setOnClickListener {
-            lifecycleScope.launch {
-                val files = getGoogleDrive()?.let { it1 -> listFiles(it1)
-                }
-                Log.d("GD Clone", files.toString())
-            }
-        }
+        setupActionBarWithNavController(navController)
+//
+//        binding.signInButton.setOnClickListener {
+//            lifecycleScope.launch {
+//                withContext(Dispatchers.IO) {
+//                    val result = signInGoogle()
+//                    signInLauncher.launch(IntentSenderRequest.Builder(result).build())
+//                }
+//            }
+//        }
+//
+//        binding.getFilesButton.setOnClickListener {
+//            lifecycleScope.launch {
+//                val files = getGoogleDrive()?.let { it1 -> listFiles(it1)
+//                }
+//                Log.d("GD Clone", files.toString())
+//            }
+//        }
+//
+//        binding.isLoggedIn.setOnClickListener {
+//            lifecycleScope.launch {
+//                showToast("is signed in ${isSignedIn()}")
+//            }
+//        }
+//
+//        binding.signOut.setOnClickListener {
+//            lifecycleScope.launch {
+//                withContext(Dispatchers.IO) {
+//                    signOut()
+//                }
+//            }
+//        }
+//
+//        binding.uploadBtn.setOnClickListener {
+//            lifecycleScope.launch {
+//                withContext(Dispatchers.IO) {
+//                    getGoogleDrive()?.let { it1 -> uploadFileToDrive(it1, createTextFile(this@MainActivity, "abc", "sjdfhbsjgbkjsdbgsdbgjs sjgisdg"), "abc.txt") }
+//                }
+//            }
+//        }
+    }
 
-        binding.isLoggedIn.setOnClickListener {
-            lifecycleScope.launch {
-                showToast("is signed in ${isSignedIn()}")
-            }
-        }
-
-        binding.signOut.setOnClickListener {
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    signOut()
-                }
-            }
-        }
-
-        binding.uploadBtn.setOnClickListener {
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    getGoogleDrive()?.let { it1 -> uploadFileToDrive(it1, createTextFile(this@MainActivity, "abc", "sjdfhbsjgbkjsdbgsdbgjs sjgisdg"), "abc.txt") }
-                }
-            }
-        }
+    override fun onSupportNavigateUp(): Boolean {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
     private suspend fun signInGoogle(): IntentSender {
@@ -141,8 +157,6 @@ class MainActivity : AppCompatActivity() {
                         .build()
                 )
             }
-
-
         }
     }
 
