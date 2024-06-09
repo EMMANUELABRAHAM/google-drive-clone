@@ -57,7 +57,6 @@ class LoginFragment : Fragment() {
         authLauncher =
             registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
                 val data = result.data ?: return@registerForActivityResult
-                "Auth Result".showToast(requireContext())
                 try {
                     val authorize = Identity.getAuthorizationClient(requireActivity())
                     authorize.getAuthorizationResultFromIntent(data)
