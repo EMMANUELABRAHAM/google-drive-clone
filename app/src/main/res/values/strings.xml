@@ -4,4 +4,5 @@
     <string name="upload_file">Upload File</string>
     <string name="list_files">List Files</string>
     <string name="img">img</string>
+    <string name="download_file">download file</string>
 </resources>
